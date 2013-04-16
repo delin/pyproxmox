@@ -93,13 +93,12 @@ class pyproxmox:
                                             headers=httpheaders)
         elif conn_type == "get":
             self.response = requests.get(self.full_url, verify=False,
-                                         params=post_data,
                                          cookies=self.ticket)
 
         try:
             self.returned_data = self.response.json()
             return self.returned_data
-        except:
+        except BaseException:
             print("Error in trying to process JSON")
             print(self.response)
 
@@ -113,9 +112,19 @@ class pyproxmox:
         data = self.connect('get', 'cluster/status', None)
         return data
 
+    def getClusterResources(self):
+        """Get cluster Resources index. Returns JSON"""
+        data = self.connect('get', 'cluster/resources', None)
+        return data
+
     def getClusterBackupSchedule(self):
         """List vzdump backup schedule. Returns JSON"""
         data = self.connect('get', 'cluster/backup', None)
+        return data
+
+    def getClusterVmNextId(self):
+        """Get next VM ID of cluster. Returns JSON"""
+        data = self.connect('get', 'cluster/nextid', None)
         return data
 
     # Node Methods
@@ -231,6 +240,7 @@ class pyproxmox:
         data = self.connect('get', 'nodes/%s/scan/usb' % node, None)
         return data
 
+
     # OpenVZ Methods
 
     def getContainerIndex(self, node, vmid):
@@ -333,7 +343,7 @@ class pyproxmox:
         Create or restore a container. Returns JSON
         Requires a dictionary of tuples formatted [('postname1','data'),('postname2','data')]
         """
-        data = self.connect('post', 'nodes/%s/openvz' % (node), post_data)
+        data = self.connect('post', 'nodes/%s/openvz' % node, post_data)
         return data
 
     def mountOpenvzPrivate(self, node, vmid):
@@ -368,7 +378,7 @@ class pyproxmox:
 
     def migrateOpenvzContainer(self, node, vmid, target):
         """Migrate the container to another node. Creates a new migration task. Returns JSON"""
-        post_data = {'target', str(target)}
+        post_data = {'target': str(target)}
         data = self.connect('post', 'nodes/%s/openvz/%s/migrate' % (node, vmid), post_data)
         return data
 
@@ -379,7 +389,7 @@ class pyproxmox:
         Create or restore a virtual machine. Returns JSON
         Requires a dictionary of tuples formatted [('postname1','data'),('postname2','data')]
         """
-        data = self.connect('post', "nodes/%s/qemu" % (node), post_data)
+        data = self.connect('post', "nodes/%s/qemu" % node, post_data)
         return data
 
     def resetVirtualMachine(self, node, vmid):
@@ -420,13 +430,13 @@ class pyproxmox:
 
     def migrateVirtualMachine(self, node, vmid, target):
         """Migrate a virtual machine. Returns JSON"""
-        post_data = {'target', str(target)}
+        post_data = {'target': str(target)}
         data = self.connect('post', "nodes/%s/qemu/%s/status/start" % (node, vmid), post_data)
         return data
 
     def monitorVirtualMachine(self, node, vmid, command):
         """Send monitor command to a virtual machine. Returns JSON"""
-        post_data = {'command', str(command)}
+        post_data = {'command': str(command)}
         data = self.connect('post', "nodes/%s/qemu/%s/monitor" % (node, vmid), post_data)
         return data
 
@@ -482,7 +492,7 @@ class pyproxmox:
     # POOLS
     def deletePool(self, poolid):
         """Delete Pool"""
-        data = self.connect('delete', "pools/%s"(poolid), None)
+        data = self.connect('delete', "pools/%s" % poolid, None)
         return data
 
     # STORAGE
@@ -498,19 +508,19 @@ class pyproxmox:
     # NODE
     def setNodeDNSDomain(self, node, domain):
         """Set the nodes DNS search domain"""
-        post_data = {'search', str(domain)}
+        post_data = {'search': str(domain)}
         data = self.connect('put', "nodes/%s/dns" % node, post_data)
         return data
 
     def setNodeSubscriptionKey(self, node, key):
         """Set the nodes subscription key"""
-        post_data = {'key', str(key)}
+        post_data = {'key': str(key)}
         data = self.connect('put', "nodes/%s/subscription" % node, post_data)
         return data
 
     def setNodeTimeZone(self, node, timezone):
         """Set the nodes timezone"""
-        post_data = {'timezone', str(timezone)}
+        post_data = {'timezone': str(timezone)}
         data = self.connect('put', "nodes/%s/time" % node, post_data)
         return data
 
@@ -522,13 +532,17 @@ class pyproxmox:
 
     # KVM
     def setVirtualMachineOptions(self, node, vmid, post_data):
-        """Set KVM virtual machine options."""
+        """Set KVM virtual machine options.
+        :param node:
+        :param vmid:
+        :param post_data:
+        """
         data = self.connect('put', "nodes/%s/qemu/%s/config" % (node, vmid), post_data)
         return data
 
     def sendKeyEventVirtualMachine(self, node, vmid, key):
         """Send key event to virtual machine"""
-        post_data = {'key', str(key)}
+        post_data = {'key': str(key)}
         data = self.connect('put', "nodes/%s/qemu/%s/sendkey" % (node, vmid), post_data)
         return data
 
@@ -540,7 +554,7 @@ class pyproxmox:
     # POOLS
     def setPoolData(self, poolid, post_data):
         """Update pool data."""
-        data = self.connect('put', "pools/%s"(poolid), post_data)
+        data = self.connect('put', "pools/%s" % poolid, post_data)
         return data
 
     # STORAGE
