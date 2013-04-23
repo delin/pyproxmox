@@ -128,6 +128,11 @@ class pyproxmox:
         return data
 
     # Node Methods
+    def getNodeAplInfo(self, node):
+        """Get list of appliances. Returns JSON"""
+        data = self.connect('get', 'nodes/%s/aplinfo' % node, None)
+        return data
+
     def getNodeNetworks(self, node):
         """List available networks. Returns JSON"""
         data = self.connect('get', 'nodes/%s/network' % node, None)
